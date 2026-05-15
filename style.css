@@ -1,0 +1,47 @@
+body {
+    background-color: #f0f0f0;
+    font-family: 'Microsoft JhengHei', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#chess {
+    display: block;
+    margin: 20px auto;
+    background-color: #e3b04b;
+    box-shadow: 2px 2px 5px #666;
+    cursor: pointer;
+}
+
+.setup-panel, .controls {
+    margin-bottom: 15px;
+}
+
+input, select, button {
+    padding: 8px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+button:hover {
+    background-color: #45a049;
+}
