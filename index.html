@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人化五子棋對戰</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>五子棋對戰</h1>
+        
+        <div class="setup-panel">
+            <input type="text" id="playerName" placeholder="輸入你的大名">
+            <select id="playerColor">
+                <option value="black">我想玩黑棋 (先手)</option>
+                <option value="white">我想玩白棋 (後手)</option>
+            </select>
+            <button id="startBtn">開始遊戲</button>
+        </div>
+
+        <div class="status" id="statusText">準備好挑戰電腦了嗎？</div>
+        
+        <canvas id="chess" width="450" height="450"></canvas>
+        
+        <div class="controls">
+            <button onclick="resetGame()">重新開始</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
