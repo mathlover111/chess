@@ -147,7 +147,7 @@ function computerAI() {
     let myScore = [];
     let compScore = [];
     let max = 0;
-    let u = 7, v = 7; // 預設落子中心
+    let u = 0, v = 0;
 
     for (let i = 0; i < 15; i++) {
         myScore[i] = [];
@@ -163,34 +163,47 @@ function computerAI() {
             if (chessBoard[i][j] === 0) {
                 for (let k = 0; k < count; k++) {
                     if (wins[i][j][k]) {
-                        // 評估攔截玩家的必要性 (防守)
-                        if (myWin[k] === 1) myScore[i][j] += 200;
-                        else if (myWin[k] === 2) myScore[i][j] += 500;
-                        else if (myWin[k] === 3) myScore[i][j] += 2000;
-                        else if (myWin[k] === 4) myScore[i][j] += 10000;
+                        // --- 防守權重：如果你快贏了，電腦必須拼命擋 ---
+                        if (myWin[k] === 1) myScore[i][j] += 200;      // 你有一顆
+                        else if (myWin[k] === 2) myScore[i][j] += 1000;   // 你有兩顆
+                        else if (myWin[k] === 3) myScore[i][j] += 5000;   // 你有三顆 (極度危險)
+                        else if (myWin[k] === 4) myScore[i][j] += 20000;  // 你有四顆 (不擋就死)
 
-                        // 評估電腦自身的勝算 (進攻)
+                        // --- 進攻權重：電腦自己連線的權重 ---
                         if (computerWin[k] === 1) compScore[i][j] += 220;
-                        else if (computerWin[k] === 2) compScore[i][j] += 550;
-                        else if (computerWin[k] === 3) compScore[i][j] += 2200;
-                        else if (computerWin[k] === 4) compScore[i][j] += 30000;
+                        else if (computerWin[k] === 2) compScore[i][j] += 1200;
+                        else if (computerWin[k] === 3) compScore[i][j] += 6000;
+                        else if (computerWin[k] === 4) compScore[i][j] += 50000; // 電腦要贏了
                     }
                 }
 
-                // 綜合判斷落子點
+                // 決定落子點：綜合考慮防守與進攻
+                // 優先檢查玩家是否有威脅
                 if (myScore[i][j] > max) {
-                    max = myScore[i][j]; u = i; v = j;
+                    max = myScore[i][j];
+                    u = i; v = j;
                 } else if (myScore[i][j] === max) {
-                    if (compScore[i][j] > compScore[u][v]) { u = i; v = j; }
+                    if (compScore[i][j] > compScore[u][v]) {
+                        u = i; v = j;
+                    }
                 }
 
+                // 檢查電腦自己是否有更好的進攻點
                 if (compScore[i][j] > max) {
-                    max = compScore[i][j]; u = i; v = j;
+                    max = compScore[i][j];
+                    u = i; v = j;
                 } else if (compScore[i][j] === max) {
-                    if (myScore[i][j] > myScore[u][v]) { u = i; v = j; }
+                    if (myScore[i][j] > myScore[u][v]) {
+                        u = i; v = j;
+                    }
                 }
             }
         }
+    }
+
+    // 如果棋盤全空（電腦先手），下在中間
+    if (max === 0) {
+        u = 7; v = 7;
     }
 
     oneStep(u, v, myColor !== 'black');
@@ -198,9 +211,9 @@ function computerAI() {
     for (let k = 0; k < count; k++) {
         if (wins[u][v][k]) {
             computerWin[k]++;
-            myWin[k] = 6;
+            myWin[k] = 6; // 標記玩家此線已廢
             if (computerWin[k] === 5) {
-                statusText.innerText = "電腦贏了！再接再厲！";
+                statusText.innerText = "電腦贏了！看來這次它學聰明了。";
                 over = true;
             }
         }
