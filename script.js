@@ -3,26 +3,81 @@ const ctx = canvas.getContext('2d');
 const statusText = document.getElementById('statusText');
 const startBtn = document.getElementById('startBtn');
 
-let chessBoard = []; // 棋盤紀錄
-let me = true; // 輪到誰
+let chessBoard = [];
+let me = true; 
 let over = false;
-let myColor = 'black'; // 玩家顏色
+let myColor = 'black'; 
 let userName = "玩家";
 
-// 初始化棋盤數據
-function initBoard() {
+// --- 贏法算法初始化 ---
+let wins = []; // 贏法三維陣列 [x][y][第幾種贏法]
+let count = 0; // 總共有多少種贏法
+
+for (let i = 0; i < 15; i++) {
+    wins[i] = [];
+    for (let j = 0; j < 15; j++) {
+        wins[i][j] = [];
+    }
+}
+
+// 橫線贏法
+for (let i = 0; i < 15; i++) {
+    for (let j = 0; j < 11; j++) {
+        for (let k = 0; k < 5; k++) {
+            wins[i][j+k][count] = true;
+        }
+        count++;
+    }
+}
+// 豎線贏法
+for (let i = 0; i < 15; i++) {
+    for (let j = 0; j < 11; j++) {
+        for (let k = 0; k < 5; k++) {
+            wins[j+k][i][count] = true;
+        }
+        count++;
+    }
+}
+// 斜線贏法
+for (let i = 0; i < 11; i++) {
+    for (let j = 0; j < 11; j++) {
+        for (let k = 0; k < 5; k++) {
+            wins[i+k][j+k][count] = true;
+        }
+        count++;
+    }
+}
+// 反斜線贏法
+for (let i = 0; i < 11; i++) {
+    for (let j = 14; j > 3; j--) {
+        for (let k = 0; k < 5; k++) {
+            wins[i+k][j-k][count] = true;
+        }
+        count++;
+    }
+}
+
+let myWin = [];
+let computerWin = [];
+
+function initData() {
     for (let i = 0; i < 15; i++) {
         chessBoard[i] = [];
         for (let j = 0; j < 15; j++) {
             chessBoard[i][j] = 0;
         }
     }
+    for (let i = 0; i < count; i++) {
+        myWin[i] = 0;
+        computerWin[i] = 0;
+    }
 }
 
-// 繪製棋盤線條
-function drawChessBoard() {
+// --- 繪圖邏輯 ---
+function drawBoard() {
     ctx.strokeStyle = "#444";
     for (let i = 0; i < 15; i++) {
+        ctx.beginPath();
         ctx.moveTo(15 + i * 30, 15);
         ctx.lineTo(15 + i * 30, 435);
         ctx.stroke();
@@ -32,121 +87,134 @@ function drawChessBoard() {
     }
 }
 
-// 畫棋子
 function oneStep(i, j, isBlack) {
     ctx.beginPath();
     ctx.arc(15 + i * 30, 15 + j * 30, 13, 0, 2 * Math.PI);
-    ctx.closePath();
-    let gradient = ctx.createRadialGradient(15 + i * 30 + 2, 15 + j * 30 - 2, 13, 15 + i * 30 + 2, 15 + j * 30 - 2, 0);
+    let grad = ctx.createRadialGradient(15+i*30+2, 15+j*30-2, 13, 15+i*30+2, 15+j*30-2, 0);
     if (isBlack) {
-        gradient.addColorStop(0, "#0A0A0A");
-        gradient.addColorStop(1, "#636766");
+        grad.addColorStop(0, "#0A0A0A");
+        grad.addColorStop(1, "#636766");
     } else {
-        gradient.addColorStop(0, "#D1D1D1");
-        gradient.addColorStop(1, "#F9F9F9");
+        grad.addColorStop(0, "#D1D1D1");
+        grad.addColorStop(1, "#F9F9F9");
     }
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = grad;
     ctx.fill();
 }
 
-// 開始遊戲設定
+// --- 遊戲控制 ---
 startBtn.onclick = function() {
     userName = document.getElementById('playerName').value || "玩家";
     myColor = document.getElementById('playerColor').value;
     resetGame();
-    
     if (myColor === 'white') {
         me = false;
-        setTimeout(computerAI, 500); // 電腦先手(黑棋)
+        computerAI();
     } else {
         me = true;
     }
-    statusText.innerText = `${userName} (${myColor === 'black' ? '黑子' : '白子'}) 對戰 電腦`;
+    statusText.innerText = `對決中：${userName} (持${myColor === 'black' ? '黑' : '白'})`;
 }
 
-// 點擊落子
 canvas.onclick = function(e) {
     if (over || !me) return;
-    let x = e.offsetX;
-    let y = e.offsetY;
-    let i = Math.floor(x / 30);
-    let j = Math.floor(y / 30);
+    let i = Math.floor(e.offsetX / 30);
+    let j = Math.floor(e.offsetY / 30);
 
     if (chessBoard[i][j] === 0) {
         oneStep(i, j, myColor === 'black');
-        chessBoard[i][j] = 1; // 玩家
-        
-        if (checkWin(i, j, 1)) {
-            statusText.innerText = `恭喜 ${userName} 獲勝！`;
-            over = true;
-        } else {
+        chessBoard[i][j] = 1;
+
+        for (let k = 0; k < count; k++) {
+            if (wins[i][j][k]) {
+                myWin[k]++;
+                computerWin[k] = 6; // 該線路電腦已無法贏
+                if (myWin[k] === 5) {
+                    statusText.innerText = `恭喜 ${userName} 獲勝！`;
+                    over = true;
+                }
+            }
+        }
+        if (!over) {
             me = !me;
             computerAI();
         }
     }
-};
+}
 
-// 簡單 AI 邏輯 (尋找最大權重點)
+// --- 核心 AI：權重博弈算法 ---
 function computerAI() {
-    if (over) return;
     let myScore = [];
-    let computerScore = [];
+    let compScore = [];
     let max = 0;
-    let u = 0, v = 0;
+    let u = 7, v = 7; // 預設落子中心
 
-    // 此處簡化處理：AI 隨機尋找空位，並優先阻擋或進攻
-    // 在 GitHub 專案中，你可以後續加入更複雜的「贏法陣列」演算法
+    for (let i = 0; i < 15; i++) {
+        myScore[i] = [];
+        compScore[i] = [];
+        for (let j = 0; j < 15; j++) {
+            myScore[i][j] = 0;
+            compScore[i][j] = 0;
+        }
+    }
+
     for (let i = 0; i < 15; i++) {
         for (let j = 0; j < 15; j++) {
             if (chessBoard[i][j] === 0) {
-                let score = Math.random() * 10; // 基礎隨機分
-                // 這裡可以加入檢查周圍棋子的邏輯來增加分數
-                if (score > max) {
-                    max = score;
-                    u = i; v = j;
+                for (let k = 0; k < count; k++) {
+                    if (wins[i][j][k]) {
+                        // 評估攔截玩家的必要性 (防守)
+                        if (myWin[k] === 1) myScore[i][j] += 200;
+                        else if (myWin[k] === 2) myScore[i][j] += 500;
+                        else if (myWin[k] === 3) myScore[i][j] += 2000;
+                        else if (myWin[k] === 4) myScore[i][j] += 10000;
+
+                        // 評估電腦自身的勝算 (進攻)
+                        if (computerWin[k] === 1) compScore[i][j] += 220;
+                        else if (computerWin[k] === 2) compScore[i][j] += 550;
+                        else if (computerWin[k] === 3) compScore[i][j] += 2200;
+                        else if (computerWin[k] === 4) compScore[i][j] += 30000;
+                    }
+                }
+
+                // 綜合判斷落子點
+                if (myScore[i][j] > max) {
+                    max = myScore[i][j]; u = i; v = j;
+                } else if (myScore[i][j] === max) {
+                    if (compScore[i][j] > compScore[u][v]) { u = i; v = j; }
+                }
+
+                if (compScore[i][j] > max) {
+                    max = compScore[i][j]; u = i; v = j;
+                } else if (compScore[i][j] === max) {
+                    if (myScore[i][j] > myScore[u][v]) { u = i; v = j; }
                 }
             }
         }
     }
 
     oneStep(u, v, myColor !== 'black');
-    chessBoard[u][v] = 2; // 電腦
-    
-    if (checkWin(u, v, 2)) {
-        statusText.innerText = "電腦獲勝，再接再厲！";
-        over = true;
-    } else {
-        me = !me;
-    }
-}
-
-// 勝負判定 (水平、垂直、兩條斜線)
-function checkWin(x, y, role) {
-    const directions = [[1,0], [0,1], [1,1], [1,-1]];
-    for (let [dx, dy] of directions) {
-        let count = 1;
-        // 正向檢查
-        let tx = x + dx, ty = y + dy;
-        while(tx>=0 && tx<15 && ty>=0 && ty<15 && chessBoard[tx][ty] === role) {
-            count++; tx += dx; ty += dy;
+    chessBoard[u][v] = 2;
+    for (let k = 0; k < count; k++) {
+        if (wins[u][v][k]) {
+            computerWin[k]++;
+            myWin[k] = 6;
+            if (computerWin[k] === 5) {
+                statusText.innerText = "電腦贏了！再接再厲！";
+                over = true;
+            }
         }
-        // 反向檢查
-        tx = x - dx; ty = y - dy;
-        while(tx>=0 && tx<15 && ty>=0 && ty<15 && chessBoard[tx][ty] === role) {
-            count++; tx -= dx; ty -= dy;
-        }
-        if (count >= 5) return true;
     }
-    return false;
+    if (!over) me = !me;
 }
 
 function resetGame() {
     ctx.clearRect(0, 0, 450, 450);
-    initBoard();
-    drawChessBoard();
+    initData();
+    drawBoard();
     over = false;
 }
 
-// 初始化繪製
-initBoard();
-drawChessBoard();
+// 初始化
+initData();
+drawBoard();
