@@ -1,47 +1,98 @@
+/* 讓背景更有層次，不再是死板的灰色 */
 body {
-    background-color: #f0f0f0;
-    font-family: 'Microsoft JhengHei', sans-serif;
+    background: radial-gradient(circle, #ffffff 0%, #d7d7d7 100%);
+    font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
 }
 
+/* 容器改為毛玻璃質感，並增加圓角 */
 .container {
     text-align: center;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1); /* 更柔和的大陰影 */
 }
 
+h1 {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+/* 棋盤優化：增加木質感與深度 */
 #chess {
     display: block;
-    margin: 20px auto;
-    background-color: #e3b04b;
-    box-shadow: 2px 2px 5px #666;
-    cursor: pointer;
-}
-
-.setup-panel, .controls {
-    margin-bottom: 15px;
-}
-
-input, select, button {
-    padding: 8px;
-    margin: 5px;
-    border: 1px solid #ccc;
+    margin: 25px auto;
+    background-color: #f3c178; /* 稍微亮一點的木頭色 */
+    background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 30px 30px; /* 模擬格線背景 */
+    border: 8px solid #d4a356;
     border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 0 100px rgba(0,0,0,0.05);
+    cursor: crosshair; /* 改為十字準心，更有對弈感 */
 }
 
+/* 控制面板排列更整齊 */
+.setup-panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input, select {
+    padding: 12px 15px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+input:focus, select:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+/* 按鈕改為現代風格 */
 button {
-    background-color: #4CAF50;
+    padding: 12px 25px;
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
     color: white;
-    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 1px;
     border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    transition: all 0.3s ease;
 }
 
 button:hover {
-    background-color: #45a049;
+    transform: translateY(-2px); /* 滑過時往上飄 */
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    filter: brightness(1.1);
+}
+
+button:active {
+    transform: translateY(1px); /* 點擊時按下去 */
+}
+
+/* 針對「重新開始」按鈕給予不同的視覺暗示 */
+.controls button {
+    background: #fff;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+    box-shadow: none;
+}
+
+.controls button:hover {
+    background: #e74c3c;
+    color: #fff;
 }
